@@ -70,7 +70,7 @@ export const sendNotification = async (to: string, subject: string, text: string
         });
 
         console.log("================================================");
-        console.log("📧 EMAIL SENT SUCCESSFULLY");
+        console.log("📧 EMAIL SENT SUCCESSFULLY to:", to);
         console.log("Message ID:", info.messageId);
 
         const previewUrl = nodemailer.getTestMessageUrl(info);
