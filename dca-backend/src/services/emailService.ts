@@ -50,10 +50,11 @@ const getTransporter = async () => {
 export const testConnection = async () => {
     console.log('--- 📧 SMTP STARTUP CHECK ---');
     try {
-        await getTransporter();
-        console.log('✅ Email service initialized.');
+        const transporter = await getTransporter();
+        await transporter.verify();
+        console.log('✅ SMTP Connection Verified (Credentials are correct)');
     } catch (error) {
-        console.error('❌ Email service failed to initialize:', error);
+        console.error('❌ SMTP Connection Failed (Check Password/Port):', error);
     }
 };
 
