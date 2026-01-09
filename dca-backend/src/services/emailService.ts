@@ -10,6 +10,11 @@ const getTransporter = async () => {
         // Check if real SMTP credentials are provided in .env
         const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
 
+        console.log('--- 📧 SMTP DIAGNOSTICS ---');
+        console.log('SMTP_HOST:', SMTP_HOST ? `✅ Detected (${SMTP_HOST})` : '❌ Missing');
+        console.log('SMTP_USER:', SMTP_USER ? '✅ Detected' : '❌ Missing');
+        console.log('SMTP_PASS:', SMTP_PASS ? '✅ Detected' : '❌ Missing');
+
         if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
             console.log(`🌐 Initializing Real SMTP Service: ${SMTP_HOST}`);
             return nodemailer.createTransport({
