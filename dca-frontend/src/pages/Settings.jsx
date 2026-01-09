@@ -1,9 +1,51 @@
-import React, { useState } from 'react';
-import { User, Bell, Shield, Globe, Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Bell, Shield, Globe, Save, Loader2 } from 'lucide-react';
+import { authService } from '../services/api';
 import '../styles/Settings.css';
 
 const SettingsPage = () => {
     const [activeTab, setActiveTab] = useState('profile');
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' });
+
+    // Initialize profile data from localStorage
+    const [profileData, setProfileData] = useState({
+        name: '',
+        email: '',
+        role: ''
+    });
+
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        setProfileData({
+            name: user.name || '',
+            email: user.email || '',
+            role: user.role || 'admin'
+        });
+    }, []);
+
+    const handleSaveProfile = async () => {
+        setLoading(true);
+        setMessage({ type: '', text: '' });
+        try {
+            const response = await authService.updateProfile(profileData);
+
+            // Update local storage
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const updatedUser = { ...currentUser, ...response.data.user };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            setMessage({ type: 'success', text: 'Profile updated successfully!' });
+
+            // Trigger a custom event to update Sidebar/App state if needed
+            window.dispatchEvent(new Event('storage'));
+        } catch (error) {
+            console.error('Failed to update profile:', error);
+            setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update profile.' });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const sections = [
         { id: 'profile', name: 'Profile', icon: User },
@@ -16,10 +58,21 @@ const SettingsPage = () => {
         <div className="settings-container">
             <header className="page-header">
                 <h1>Settings</h1>
-                <button className="btn-primary flex items-center gap-2">
-                    <Save size={18} /> Save Changes
+                <button
+                    className="btn-primary flex items-center gap-2"
+                    onClick={handleSaveProfile}
+                    disabled={loading}
+                >
+                    {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                    {loading ? 'Saving...' : 'Save Changes'}
                 </button>
             </header>
+
+            {message.text && (
+                <div className={`alert-banner ${message.type}`}>
+                    {message.text}
+                </div>
+            )}
 
             <div className="settings-layout">
                 <aside className="settings-sidebar glass-card">
@@ -43,15 +96,26 @@ const SettingsPage = () => {
                             <div className="form-grid">
                                 <div className="form-group">
                                     <label>Full Name</label>
-                                    <input type="text" defaultValue="Admin User" />
+                                    <input
+                                        type="text"
+                                        value={profileData.name}
+                                        onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                                    />
                                 </div>
                                 <div className="form-group">
                                     <label>Email Address</label>
-                                    <input type="email" defaultValue="admin@dcaplatform.com" />
+                                    <input
+                                        type="email"
+                                        value={profileData.email}
+                                        onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                                    />
                                 </div>
                                 <div className="form-group">
                                     <label>Role</label>
-                                    <select defaultValue="admin">
+                                    <select
+                                        value={profileData.role}
+                                        onChange={(e) => setProfileData({ ...profileData, role: e.target.value })}
+                                    >
                                         <option value="admin">Super Administrator</option>
                                         <option value="manager">Case Manager</option>
                                         <option value="dca">External DCA Agent</option>

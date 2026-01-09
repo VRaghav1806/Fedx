@@ -20,6 +20,7 @@ api.interceptors.request.use((config) => {
 export const authService = {
     login: (credentials) => api.post('/auth/login', credentials),
     signup: (userData) => api.post('/auth/signup', userData),
+    updateProfile: (data) => api.patch('/auth/profile', data),
     logout: () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');

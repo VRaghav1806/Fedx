@@ -50,6 +50,11 @@ const NewCaseModal = ({ isOpen, onClose, onCaseCreated, initialData = null }) =>
             onCaseCreated();
             onClose();
         } catch (error) {
+            console.error('Save Case Error:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+            });
             alert(initialData ? 'Error updating case.' : 'Error creating case. Please check if the account number is unique.');
         } finally {
             setLoading(false);

@@ -69,3 +69,37 @@ export const login = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error logging in', error });
     }
 };
+
+export const updateProfile = async (req: any, res: Response) => {
+    try {
+        const { name, email, password, role } = req.body;
+        const userId = req.user.userId;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (name) user.name = name;
+        if (email) user.email = email;
+        if (role) user.role = role;
+
+        if (password) {
+            user.password = await bcrypt.hash(password, 12);
+        }
+
+        await user.save();
+
+        res.status(200).json({
+            message: 'Profile updated successfully',
+            user: {
+                userId: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating profile', error });
+    }
+};
