@@ -16,15 +16,21 @@ const getTransporter = async () => {
         console.log('SMTP_PASS:', SMTP_PASS ? '✅ Detected' : '❌ Missing');
 
         if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-            console.log(`🌐 Initializing Real SMTP Service: ${SMTP_HOST}`);
+            const cleanPort = (SMTP_PORT || '587').trim();
+            const isSecure = cleanPort === '465';
+
+            console.log(`🌐 Initializing Real SMTP Service: ${SMTP_HOST} (Port: ${cleanPort}, Secure: ${isSecure})`);
+
             return nodemailer.createTransport({
-                host: SMTP_HOST,
-                port: parseInt(SMTP_PORT || '587'),
-                secure: SMTP_PORT === '465', // true for 465, false for other ports
+                host: SMTP_HOST.trim(),
+                port: parseInt(cleanPort),
+                secure: isSecure,
                 auth: {
-                    user: SMTP_USER,
-                    pass: SMTP_PASS,
+                    user: SMTP_USER.trim(),
+                    pass: SMTP_PASS.trim(),
                 },
+                debug: true, // Show detailed SMTP logs
+                logger: true // Log to console
             });
         }
 
