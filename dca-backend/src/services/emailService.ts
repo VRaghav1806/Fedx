@@ -62,7 +62,7 @@ export const sendNotification = async (to: string, subject: string, text: string
         const transporter = await getTransporter();
 
         const info = await transporter.sendMail({
-            from: '"DCA Platform Alerts" <alerts@dcaplatform.com>',
+            from: `"DCA Platform Alerts" <${process.env.SMTP_USER || 'alerts@dcaplatform.com'}>`,
             to,
             subject,
             text,
