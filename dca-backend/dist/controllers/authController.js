@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.signup = void 0;
+exports.updateProfile = exports.login = exports.signup = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = __importDefault(require("../models/User"));
@@ -27,7 +27,7 @@ const signup = async (req, res) => {
         });
         await newUser.save();
         // Generate token
-        const token = jsonwebtoken_1.default.sign({ userId: newUser._id, email: newUser.email, role: newUser.role }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jsonwebtoken_1.default.sign({ userId: newUser._id, email: newUser.email, role: newUser.role }, JWT_SECRET, { expiresIn: '7d' });
         res.status(201).json({ token, userId: newUser._id, name: newUser.name, role: newUser.role });
     }
     catch (error) {
@@ -49,7 +49,7 @@ const login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
         // Generate token
-        const token = jsonwebtoken_1.default.sign({ userId: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jsonwebtoken_1.default.sign({ userId: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
         res.status(200).json({ token, userId: user._id, name: user.name, role: user.role });
     }
     catch (error) {
@@ -57,3 +57,48 @@ const login = async (req, res) => {
     }
 };
 exports.login = login;
+const updateProfile = async (req, res) => {
+    try {
+        const { name, email, password, role } = req.body;
+        const userId = req.user?.userId;
+        console.log('👤 Profile Update Request:', { userId, name, email, role });
+        if (!userId) {
+            console.error('❌ Update failed: No userId in request');
+            return res.status(401).json({ message: 'User identity not found in token' });
+        }
+        const user = await User_1.default.findById(userId);
+        if (!user) {
+            console.error(`❌ Update failed: User not found for ID ${userId}`);
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (name)
+            user.name = name;
+        if (email)
+            user.email = email;
+        if (role)
+            user.role = role;
+        if (password) {
+            user.password = await bcryptjs_1.default.hash(password, 12);
+        }
+        await user.save();
+        console.log('✅ Profile updated successfully for:', user.email);
+        res.status(200).json({
+            message: 'Profile updated successfully',
+            user: {
+                userId: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    }
+    catch (error) {
+        console.error('❌ Profile Update Global Error:', error);
+        res.status(500).json({
+            message: 'Error updating profile',
+            error: error.message,
+            code: error.code // Capture MongoDB unique constraint errors
+        });
+    }
+};
+exports.updateProfile = updateProfile;

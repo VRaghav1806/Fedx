@@ -30,7 +30,17 @@ const createCase = async (req, res) => {
         res.status(201).json(savedCase);
     }
     catch (error) {
-        res.status(400).json({ message: 'Error creating case', error });
+        // Detect MongoDB duplicate key error (code 11000)
+        const isDuplicate = error.code === 11000 ||
+            (error.name === 'MongoServerError' && error.code === 11000) ||
+            (error.message && error.message.includes('E11000'));
+        if (isDuplicate) {
+            return res.status(409).json({
+                message: 'Account number already exists. Please use a unique number.',
+                error: 'DuplicateKey'
+            });
+        }
+        res.status(400).json({ message: 'Error creating case', error: error });
     }
 };
 exports.createCase = createCase;

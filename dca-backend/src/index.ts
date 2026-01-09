@@ -14,6 +14,9 @@ const startServer = async () => {
         console.log('--- 🛡️ ENVIRONMENT DIAGNOSTICS ---');
         console.log('PORT:', process.env.PORT || 'Not Set (using 5000)');
         console.log('MONGO_URL Detected:', process.env.MONGO_URL ? '✅ Yes' : '❌ No');
+        console.log('SMTP_HOST Detected:', process.env.SMTP_HOST ? '✅ Yes' : '❌ No');
+        console.log('SMTP_USER Detected:', process.env.SMTP_USER ? '✅ Yes' : '❌ No');
+        console.log('SMTP_PASS Detected:', process.env.SMTP_PASS ? '✅ Yes' : '❌ No');
 
         const maskedUrl = MONGO_URL.replace(/:([^:@]{1,})@/, ':****@');
         console.log(`📡 Connection String: ${maskedUrl}`);

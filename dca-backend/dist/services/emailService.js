@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.notifyEscalation = exports.notifyCaseCreated = exports.sendNotification = void 0;
+exports.notifyEscalation = exports.notifyCaseCreated = exports.sendNotification = exports.testConnection = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 // Cache the transporter to avoid re-creating test accounts on every request
 let transporterPromise = null;
@@ -13,6 +13,10 @@ const getTransporter = async () => {
     transporterPromise = (async () => {
         // Check if real SMTP credentials are provided in .env
         const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+        console.log('--- 📧 SMTP DIAGNOSTICS ---');
+        console.log('SMTP_HOST:', SMTP_HOST ? `✅ Detected (${SMTP_HOST})` : '❌ Missing');
+        console.log('SMTP_USER:', SMTP_USER ? '✅ Detected' : '❌ Missing');
+        console.log('SMTP_PASS:', SMTP_PASS ? '✅ Detected' : '❌ Missing');
         if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
             console.log(`🌐 Initializing Real SMTP Service: ${SMTP_HOST}`);
             return nodemailer_1.default.createTransport({
@@ -41,6 +45,17 @@ const getTransporter = async () => {
     })();
     return transporterPromise;
 };
+const testConnection = async () => {
+    console.log('--- 📧 SMTP STARTUP CHECK ---');
+    try {
+        await getTransporter();
+        console.log('✅ Email service initialized.');
+    }
+    catch (error) {
+        console.error('❌ Email service failed to initialize:', error);
+    }
+};
+exports.testConnection = testConnection;
 const sendNotification = async (to, subject, text, html) => {
     try {
         const transporter = await getTransporter();
@@ -88,7 +103,7 @@ const notifyCaseCreated = async (caseData) => {
             <p style="margin-top: 20px;">Please login to the dashboard for more details.</p>
         </div>
     `;
-    return (0, exports.sendNotification)('admin@dcaplatform.com', subject, text, html);
+    return (0, exports.sendNotification)(process.env.NOTIFY_EMAIL || 'admin@dcaplatform.com', subject, text, html);
 };
 exports.notifyCaseCreated = notifyCaseCreated;
 const notifyEscalation = async (caseData) => {
@@ -106,6 +121,6 @@ const notifyEscalation = async (caseData) => {
             <p>This case has breached normal SLA parameters.</p>
         </div>
     `;
-    return (0, exports.sendNotification)('admin@dcaplatform.com', subject, text, html);
+    return (0, exports.sendNotification)(process.env.NOTIFY_EMAIL || 'admin@dcaplatform.com', subject, text, html);
 };
 exports.notifyEscalation = notifyEscalation;
