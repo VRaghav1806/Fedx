@@ -37,18 +37,33 @@ const getTransporter = async () => {
             });
         }
 
-        // ... (existing fallback code) ...
+        // Fallback to Sandbox for local testing
+        console.log("🧪 No SMTP credentials found. Initializing Ethereal Sandbox...");
+        const testAccount = await nodemailer.createTestAccount();
+        console.log("Ethereal test account created:", testAccount.user);
+
+        return nodemailer.createTransport({
+            host: "smtp.ethereal.email",
+            port: 587,
+            secure: false,
+            auth: {
+                user: testAccount.user,
+                pass: testAccount.pass,
+            },
+        });
     })();
 
-    return transporterPromise;
+    return transporterPromise!;
 };
 
 export const testConnection = async () => {
     console.log('--- 📧 SMTP STARTUP CHECK ---');
     try {
         const transporter = await getTransporter();
-        await transporter.verify();
-        console.log('✅ SMTP Connection Verified (Credentials are correct)');
+        if (transporter) {
+            await transporter.verify();
+            console.log('✅ SMTP Connection Verified (Credentials are correct)');
+        }
     } catch (error: any) {
         console.error('❌ SMTP Connection Failed:', error.message);
         if (error.code === 'ETIMEDOUT') {
@@ -62,6 +77,10 @@ export const testConnection = async () => {
 export const sendNotification = async (to: string, subject: string, text: string, html: string) => {
     try {
         const transporter = await getTransporter();
+
+        if (!transporter) {
+            throw new Error("Email transporter failed to initialize");
+        }
 
         const info = await transporter.sendMail({
             from: `"DCA Platform Alerts" <${process.env.SMTP_USER || 'alerts@dcaplatform.com'}>`,
