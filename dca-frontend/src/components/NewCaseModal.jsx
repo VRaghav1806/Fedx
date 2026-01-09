@@ -13,8 +13,10 @@ const NewCaseModal = ({ isOpen, onClose, onCaseCreated, initialData = null }) =>
     });
 
     const [loading, setLoading] = useState(false);
+    const [serverError, setServerError] = useState(null);
 
     useEffect(() => {
+        setServerError(null);
         if (initialData) {
             setFormData({
                 accountNumber: initialData.accountNumber,
@@ -41,6 +43,7 @@ const NewCaseModal = ({ isOpen, onClose, onCaseCreated, initialData = null }) =>
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setServerError(null);
         try {
             if (initialData) {
                 await caseService.update(initialData._id, formData);
@@ -55,7 +58,8 @@ const NewCaseModal = ({ isOpen, onClose, onCaseCreated, initialData = null }) =>
                 response: error.response?.data,
                 status: error.response?.status
             });
-            alert(initialData ? 'Error updating case.' : 'Error creating case. Please check if the account number is unique.');
+            const errorMessage = error.response?.data?.message || (initialData ? 'Error updating case.' : 'Error creating case. Please check if the account number is unique.');
+            setServerError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -69,6 +73,11 @@ const NewCaseModal = ({ isOpen, onClose, onCaseCreated, initialData = null }) =>
                     <button onClick={onClose} className="close-btn"><X size={24} /></button>
                 </div>
                 <form onSubmit={handleSubmit}>
+                    {serverError && (
+                        <div className="error-banner">
+                            {serverError}
+                        </div>
+                    )}
                     <div className="form-group">
                         <label>Account Number</label>
                         <input
