@@ -1,127 +1,57 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-// Cache the transporter to avoid re-creating test accounts on every request
-let transporterPromise: Promise<nodemailer.Transporter> | null = null;
+// Initialize Resend client
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-const getTransporter = async () => {
-    if (transporterPromise) return transporterPromise;
-
-    transporterPromise = (async () => {
-        // Check if real SMTP credentials are provided in .env
-        const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-
-        console.log('--- 📧 SMTP DIAGNOSTICS ---');
-        console.log('SMTP_HOST:', SMTP_HOST ? `✅ Detected (${SMTP_HOST})` : '❌ Missing');
-        console.log('SMTP_USER:', SMTP_USER ? '✅ Detected' : '❌ Missing');
-        console.log('SMTP_PASS:', SMTP_PASS ? '✅ Detected' : '❌ Missing');
-
-        if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-            // Force port 465 with SSL for Render compatibility
-            const cleanPort = (SMTP_PORT || '465').trim();
-            const isSecure = cleanPort === '465';
-
-            console.log(`🌐 Initializing Real SMTP Service: ${SMTP_HOST} (Port: ${cleanPort}, Secure: ${isSecure})`);
-
-            return nodemailer.createTransport({
-                host: SMTP_HOST.trim(),
-                port: parseInt(cleanPort),
-                secure: isSecure, // true for 465, false for other ports
-                auth: {
-                    user: SMTP_USER.trim(),
-                    pass: SMTP_PASS.trim(),
-                },
-                // TLS options to handle SSL/TLS connections
-                tls: {
-                    rejectUnauthorized: false, // Accept self-signed certs
-                    minVersion: 'TLSv1.2'
-                },
-                // Require TLS for non-secure connections
-                requireTLS: !isSecure,
-                debug: true,
-                logger: true,
-                connectionTimeout: 60000, // 60 seconds (increased)
-                greetingTimeout: 60000,
-                socketTimeout: 60000,
-                // Force IPv4 to avoid IPv6 issues in container environments
-                family: 4
-            } as nodemailer.TransportOptions);
-        }
-
-        // Fallback to Sandbox for local testing
-        console.log("🧪 No SMTP credentials found. Initializing Ethereal Sandbox...");
-        const testAccount = await nodemailer.createTestAccount();
-        console.log("Ethereal test account created:", testAccount.user);
-
-        return nodemailer.createTransport({
-            host: "smtp.ethereal.email",
-            port: 587,
-            secure: false,
-            auth: {
-                user: testAccount.user,
-                pass: testAccount.pass,
-            },
-        });
-    })();
-
-    return transporterPromise!;
-};
+// Default sender - use Resend's test domain or your verified domain
+const FROM_EMAIL = process.env.FROM_EMAIL || 'DCA Platform <onboarding@resend.dev>';
 
 export const testConnection = async () => {
-    console.log('--- 📧 SMTP STARTUP CHECK ---');
-    try {
-        const transporter = await getTransporter();
-        if (transporter) {
-            await transporter.verify();
-            console.log('✅ SMTP Connection Verified (Credentials are correct)');
-        }
-    } catch (error: any) {
-        console.error('❌ SMTP Connection Failed:', error);
-        transporterPromise = null; // Reset promise to force re-initialization on next attempt
+    console.log('--- 📧 EMAIL SERVICE STARTUP CHECK ---');
 
-        if (error.code === 'ETIMEDOUT') {
-            console.error('💡 HINT: Connection Timed Out. Firewall or Port issue.');
-            console.error('   - Check if your cloud provider (Render) allows outbound traffic on this port.');
-            console.error('   - Try switching SMTP_PORT to 587 (STARTTLS) or 465 (SSL).');
-            console.error('   - Ensure SMTP_HOST is correct (e.g., smtp.gmail.com).');
-        } else if (error.response && error.response.includes('Authentication')) {
-            console.error('💡 HINT: Authentication Failed. Ensure you are using an App Password, not your login password.');
-        }
+    if (!process.env.RESEND_API_KEY) {
+        console.warn('⚠️ RESEND_API_KEY not set. Email notifications will fail.');
+        console.warn('   Get your free API key at: https://resend.com');
+        return;
     }
+
+    console.log('✅ Resend API Key detected');
+    console.log('📧 From Email:', FROM_EMAIL);
+    console.log('📬 Notify Email:', process.env.NOTIFY_EMAIL || 'Not set');
 };
 
 export const sendNotification = async (to: string, subject: string, text: string, html: string) => {
     try {
-        const transporter = await getTransporter();
-
-        if (!transporter) {
-            throw new Error("Email transporter failed to initialize");
+        if (!process.env.RESEND_API_KEY) {
+            throw new Error("RESEND_API_KEY not configured. Get your free key at https://resend.com");
         }
 
-        const info = await transporter.sendMail({
-            from: `"DCA Platform Alerts" <${process.env.SMTP_USER || 'alerts@dcaplatform.com'}>`,
-            to,
+        console.log('📧 Sending email via Resend...');
+        console.log('   To:', to);
+        console.log('   Subject:', subject);
+
+        const { data, error } = await resend.emails.send({
+            from: FROM_EMAIL,
+            to: [to],
             subject,
             text,
             html,
         });
 
-        console.log("================================================");
-        console.log("📧 EMAIL SENT SUCCESSFULLY to:", to);
-        console.log("Message ID:", info.messageId);
-
-        const previewUrl = nodemailer.getTestMessageUrl(info);
-        if (previewUrl) {
-            console.log("Preview URL (Sandbox):", previewUrl);
-        } else {
-            console.log("Mode: Production (Real inbox delivery)");
+        if (error) {
+            console.error("❌ RESEND API ERROR:", error);
+            throw new Error(error.message);
         }
+
+        console.log("================================================");
+        console.log("📧 EMAIL SENT SUCCESSFULLY!");
+        console.log("   To:", to);
+        console.log("   Message ID:", data?.id);
         console.log("================================================");
 
-        return info;
+        return data;
     } catch (error) {
         console.error("❌ EMAIL SEND ERROR:", error);
-        // Reset promise on error to allow retry
-        transporterPromise = null;
         throw error;
     }
 };
