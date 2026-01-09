@@ -17,6 +17,23 @@ api.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
+// Add interceptor to handle common errors (like 401 Unauthorized)
+api.interceptors.response.use((response) => {
+    return response;
+}, (error) => {
+    if (error.response?.status === 401) {
+        console.warn('Authentication session expired or invalid. Clearing tokens.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+
+        // Optionally redirect to login page if window is available
+        if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+        }
+    }
+    return Promise.reject(error);
+});
+
 export const authService = {
     login: (credentials) => api.post('/auth/login', credentials),
     signup: (userData) => api.post('/auth/signup', userData),
