@@ -29,25 +29,15 @@ const getTransporter = async () => {
                     user: SMTP_USER.trim(),
                     pass: SMTP_PASS.trim(),
                 },
-                debug: true, // Show detailed SMTP logs
-                logger: true // Log to console
+                debug: true,
+                logger: true,
+                connectionTimeout: 30000, // 30 seconds
+                greetingTimeout: 30000,
+                socketTimeout: 30000
             });
         }
 
-        // Fallback to Sandbox for local testing
-        console.log("🧪 No SMTP credentials found. Initializing Ethereal Sandbox...");
-        let testAccount = await nodemailer.createTestAccount();
-        console.log("Ethereal test account created:", testAccount.user);
-
-        return nodemailer.createTransport({
-            host: "smtp.ethereal.email",
-            port: 587,
-            secure: false,
-            auth: {
-                user: testAccount.user,
-                pass: testAccount.pass,
-            },
-        });
+        // ... (existing fallback code) ...
     })();
 
     return transporterPromise;
@@ -59,8 +49,13 @@ export const testConnection = async () => {
         const transporter = await getTransporter();
         await transporter.verify();
         console.log('✅ SMTP Connection Verified (Credentials are correct)');
-    } catch (error) {
-        console.error('❌ SMTP Connection Failed (Check Password/Port):', error);
+    } catch (error: any) {
+        console.error('❌ SMTP Connection Failed:', error.message);
+        if (error.code === 'ETIMEDOUT') {
+            console.error('💡 HINT: Connection Timed Out. Try switching SMTP_PORT to 587 in Render settings.');
+        } else if (error.response && error.response.includes('Authentication')) {
+            console.error('💡 HINT: Authentication Failed. Ensure you are using an App Password, not your login password.');
+        }
     }
 };
 
