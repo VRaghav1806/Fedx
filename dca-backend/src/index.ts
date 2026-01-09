@@ -6,8 +6,10 @@ const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/dca_manage
 
 const startServer = async () => {
     try {
+        const maskedUrl = MONGO_URL.replace(/:([^:@]{1,})@/, ':****@');
+        console.log(`📡 Attempting to connect to MongoDB: ${maskedUrl}`);
         await mongoose.connect(MONGO_URL);
-        console.log('Connected to MongoDB');
+        console.log('✅ Connected to MongoDB');
 
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
