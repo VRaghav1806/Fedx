@@ -1,0 +1,134 @@
+.settings-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.settings-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.settings-sidebar {
+    height: fit-content;
+    padding: 1rem !important;
+}
+
+.settings-nav-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 1rem;
+}
+
+.settings-nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+.settings-nav-item.active {
+    background: var(--primary);
+    color: white;
+}
+
+.settings-content {
+    min-height: 600px;
+}
+
+.settings-section h2 {
+    margin-bottom: 0.5rem;
+}
+
+.settings-section p {
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.settings-section .form-group label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.settings-section .form-group input,
+.settings-section .form-group select {
+    width: 100%;
+    padding: 0.85rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    color: white;
+    outline: none;
+    transition: var(--transition);
+}
+
+.settings-section .form-group input:focus {
+    border-color: var(--primary);
+}
+
+.toggle-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.toggle-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+}
+
+.toggle-item span {
+    color: var(--text-muted);
+}
+
+.toggle-item input[type="checkbox"] {
+    width: 40px;
+    height: 20px;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.toggle-item input[type="checkbox"]:checked {
+    background: var(--primary);
+}
+
+.toggle-item input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: var(--transition);
+}
+
+.toggle-item input[type="checkbox"]:checked::before {
+    left: 22px;
+}
