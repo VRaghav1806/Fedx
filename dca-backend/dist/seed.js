@@ -7,10 +7,10 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const Case_1 = __importDefault(require("./models/Case"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/dca_management';
+const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/dca_management';
 const seedData = async () => {
     try {
-        await mongoose_1.default.connect(MONGO_URI);
+        await mongoose_1.default.connect(MONGO_URL);
         console.log('Connected to MongoDB for seeding');
         await Case_1.default.deleteMany({});
         const cases = [

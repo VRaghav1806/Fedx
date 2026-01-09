@@ -11,9 +11,24 @@ const getTransporter = async () => {
     if (transporterPromise)
         return transporterPromise;
     transporterPromise = (async () => {
-        console.log("Initializing Ethereal Email account...");
+        // Check if real SMTP credentials are provided in .env
+        const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+        if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+            console.log(`🌐 Initializing Real SMTP Service: ${SMTP_HOST}`);
+            return nodemailer_1.default.createTransport({
+                host: SMTP_HOST,
+                port: parseInt(SMTP_PORT || '587'),
+                secure: SMTP_PORT === '465', // true for 465, false for other ports
+                auth: {
+                    user: SMTP_USER,
+                    pass: SMTP_PASS,
+                },
+            });
+        }
+        // Fallback to Sandbox for local testing
+        console.log("🧪 No SMTP credentials found. Initializing Ethereal Sandbox...");
         let testAccount = await nodemailer_1.default.createTestAccount();
-        console.log("Ethereal account created:", testAccount.user);
+        console.log("Ethereal test account created:", testAccount.user);
         return nodemailer_1.default.createTransport({
             host: "smtp.ethereal.email",
             port: 587,
@@ -39,7 +54,13 @@ const sendNotification = async (to, subject, text, html) => {
         console.log("================================================");
         console.log("📧 EMAIL SENT SUCCESSFULLY");
         console.log("Message ID:", info.messageId);
-        console.log("Preview URL:", nodemailer_1.default.getTestMessageUrl(info));
+        const previewUrl = nodemailer_1.default.getTestMessageUrl(info);
+        if (previewUrl) {
+            console.log("Preview URL (Sandbox):", previewUrl);
+        }
+        else {
+            console.log("Mode: Production (Real inbox delivery)");
+        }
         console.log("================================================");
         return info;
     }

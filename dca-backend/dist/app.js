@@ -11,8 +11,11 @@ const caseRoutes_1 = __importDefault(require("./routes/caseRoutes"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-// Middleware
-app.use((0, cors_1.default)());
+// Middleware (Development & Simplified Hosting)
+app.use((0, cors_1.default)({
+    origin: '*',
+    credentials: true
+}));
 app.use((0, morgan_1.default)('dev'));
 app.use(express_1.default.json());
 // Routes
