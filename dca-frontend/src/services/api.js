@@ -35,9 +35,9 @@ api.interceptors.response.use((response) => {
 });
 
 export const authService = {
-    login: (credentials) => api.post('/auth/login', credentials),
-    signup: (userData) => api.post('/auth/signup', userData),
-    updateProfile: (data) => api.patch('/auth/profile', data),
+    login: (credentials) => api.post('auth/login', credentials),
+    signup: (userData) => api.post('auth/signup', userData),
+    updateProfile: (data) => api.patch('auth/profile', data),
     logout: () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -45,12 +45,12 @@ export const authService = {
 };
 
 export const caseService = {
-    getAll: () => api.get('/cases'),
-    getMetrics: () => api.get('/cases/metrics'),
-    getById: (id) => api.get(`/cases/${id}`),
-    create: (data) => api.post('/cases', data),
-    update: (id, data) => api.patch(`/cases/${id}`, data),
-    delete: (id) => api.delete(`/cases/${id}`),
+    getAll: () => api.get('cases'),
+    getMetrics: () => api.get('cases/metrics'),
+    getById: (id) => api.get(`cases/${id}`),
+    create: (data) => api.post('cases', data),
+    update: (id, data) => api.patch(`cases/${id}`, data),
+    delete: (id) => api.delete(`cases/${id}`),
 };
 
 export default api;
