@@ -22,7 +22,15 @@ app.get('/', (req, res) => {
   res.send('DCA Management API is running');
 });
 
+console.log('🔄 Mounting Auth Routes...');
 app.use('/api/auth', authRoutes);
+
+console.log('🔄 Mounting Case Routes...');
 app.use('/api/cases', caseRoutes);
+
+// Emergency Test Route
+app.get('/api/test-health', (req, res) => {
+  res.json({ message: 'API is healthy', time: new Date().toISOString() });
+});
 
 export default app;
