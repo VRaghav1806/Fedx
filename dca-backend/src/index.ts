@@ -11,7 +11,7 @@ const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/dca_manage
 
 const startServer = async () => {
     try {
-        console.log('--- 🛡️ ENVIRONMENT DIAGNOSTICS ---');
+        console.log('--- 🚀 SERVER STARTUP (VERSION: 2.1 - AUTHENTICATED SMTP) ---');
         console.log('PORT:', process.env.PORT || 'Not Set (using 5000)');
         console.log('MONGO_URL Detected:', process.env.MONGO_URL ? '✅ Yes' : '❌ No');
         console.log('SMTP_HOST Detected:', process.env.SMTP_HOST ? '✅ Yes' : '❌ No');
