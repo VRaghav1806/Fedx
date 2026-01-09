@@ -40,8 +40,15 @@ const SettingsPage = () => {
             // Trigger a custom event to update Sidebar/App state if needed
             window.dispatchEvent(new Event('storage'));
         } catch (error) {
-            console.error('Failed to update profile:', error);
-            setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update profile.' });
+            console.error('Profile Save Error:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+            });
+            setMessage({
+                type: 'error',
+                text: error.response?.data?.message || 'Failed to update profile. Check console for details.'
+            });
         } finally {
             setLoading(false);
         }

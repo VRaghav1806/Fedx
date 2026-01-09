@@ -73,10 +73,18 @@ export const login = async (req: Request, res: Response) => {
 export const updateProfile = async (req: any, res: Response) => {
     try {
         const { name, email, password, role } = req.body;
-        const userId = req.user.userId;
+        const userId = req.user?.userId;
+
+        console.log('👤 Profile Update Request:', { userId, name, email, role });
+
+        if (!userId) {
+            console.error('❌ Update failed: No userId in request');
+            return res.status(401).json({ message: 'User identity not found in token' });
+        }
 
         const user = await User.findById(userId);
         if (!user) {
+            console.error(`❌ Update failed: User not found for ID ${userId}`);
             return res.status(404).json({ message: 'User not found' });
         }
 
@@ -89,6 +97,7 @@ export const updateProfile = async (req: any, res: Response) => {
         }
 
         await user.save();
+        console.log('✅ Profile updated successfully for:', user.email);
 
         res.status(200).json({
             message: 'Profile updated successfully',
@@ -99,7 +108,12 @@ export const updateProfile = async (req: any, res: Response) => {
                 role: user.role
             }
         });
-    } catch (error) {
-        res.status(500).json({ message: 'Error updating profile', error });
+    } catch (error: any) {
+        console.error('❌ Profile Update Global Error:', error);
+        res.status(500).json({
+            message: 'Error updating profile',
+            error: error.message,
+            code: error.code // Capture MongoDB unique constraint errors
+        });
     }
 };
