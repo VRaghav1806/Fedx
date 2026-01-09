@@ -16,7 +16,8 @@ const getTransporter = async () => {
         console.log('SMTP_PASS:', SMTP_PASS ? '✅ Detected' : '❌ Missing');
 
         if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-            const cleanPort = (SMTP_PORT || '587').trim();
+            // Force port 465 with SSL for Render compatibility
+            const cleanPort = (SMTP_PORT || '465').trim();
             const isSecure = cleanPort === '465';
 
             console.log(`🌐 Initializing Real SMTP Service: ${SMTP_HOST} (Port: ${cleanPort}, Secure: ${isSecure})`);
@@ -24,17 +25,26 @@ const getTransporter = async () => {
             return nodemailer.createTransport({
                 host: SMTP_HOST.trim(),
                 port: parseInt(cleanPort),
-                secure: isSecure,
+                secure: isSecure, // true for 465, false for other ports
                 auth: {
                     user: SMTP_USER.trim(),
                     pass: SMTP_PASS.trim(),
                 },
+                // TLS options to handle SSL/TLS connections
+                tls: {
+                    rejectUnauthorized: false, // Accept self-signed certs
+                    minVersion: 'TLSv1.2'
+                },
+                // Require TLS for non-secure connections
+                requireTLS: !isSecure,
                 debug: true,
                 logger: true,
-                connectionTimeout: 60000, // 60 seconds (Render Cold Start)
+                connectionTimeout: 60000, // 60 seconds (increased)
                 greetingTimeout: 60000,
-                socketTimeout: 60000
-            });
+                socketTimeout: 60000,
+                // Force IPv4 to avoid IPv6 issues in container environments
+                family: 4
+            } as nodemailer.TransportOptions);
         }
 
         // Fallback to Sandbox for local testing
@@ -65,9 +75,14 @@ export const testConnection = async () => {
             console.log('✅ SMTP Connection Verified (Credentials are correct)');
         }
     } catch (error: any) {
-        console.error('❌ SMTP Connection Failed:', error.message);
+        console.error('❌ SMTP Connection Failed:', error);
+        transporterPromise = null; // Reset promise to force re-initialization on next attempt
+
         if (error.code === 'ETIMEDOUT') {
-            console.error('💡 HINT: Connection Timed Out. Try switching SMTP_PORT to 587 in Render settings.');
+            console.error('💡 HINT: Connection Timed Out. Firewall or Port issue.');
+            console.error('   - Check if your cloud provider (Render) allows outbound traffic on this port.');
+            console.error('   - Try switching SMTP_PORT to 587 (STARTTLS) or 465 (SSL).');
+            console.error('   - Ensure SMTP_HOST is correct (e.g., smtp.gmail.com).');
         } else if (error.response && error.response.includes('Authentication')) {
             console.error('💡 HINT: Authentication Failed. Ensure you are using an App Password, not your login password.');
         }
