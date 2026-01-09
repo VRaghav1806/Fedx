@@ -32,7 +32,7 @@ export const signup = async (req: Request, res: Response) => {
         const token = jwt.sign(
             { userId: newUser._id, email: newUser.email, role: newUser.role },
             JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '7d' }
         );
 
         res.status(201).json({ token, userId: newUser._id, name: newUser.name, role: newUser.role });
@@ -61,7 +61,7 @@ export const login = async (req: Request, res: Response) => {
         const token = jwt.sign(
             { userId: user._id, email: user.email, role: user.role },
             JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '7d' }
         );
 
         res.status(200).json({ token, userId: user._id, name: user.name, role: user.role });
