@@ -31,9 +31,9 @@ const getTransporter = async () => {
                 },
                 debug: true,
                 logger: true,
-                connectionTimeout: 30000, // 30 seconds
-                greetingTimeout: 30000,
-                socketTimeout: 30000
+                connectionTimeout: 60000, // 60 seconds (Render Cold Start)
+                greetingTimeout: 60000,
+                socketTimeout: 60000
             });
         }
 
