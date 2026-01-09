@@ -24,8 +24,8 @@ const startServer = async () => {
         await mongoose.connect(MONGO_URL);
         console.log('✅ Connected to MongoDB');
 
-        // Run SMTP Check
-        await testConnection();
+        // Run SMTP Check (Non-blocking)
+        testConnection();
 
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
