@@ -92,7 +92,7 @@ export const notifyCaseCreated = async (caseData: any) => {
         </div>
     `;
 
-    return sendNotification('admin@dcaplatform.com', subject, text, html);
+    return sendNotification(process.env.NOTIFY_EMAIL || 'admin@dcaplatform.com', subject, text, html);
 };
 
 export const notifyEscalation = async (caseData: any) => {
@@ -111,5 +111,5 @@ export const notifyEscalation = async (caseData: any) => {
         </div>
     `;
 
-    return sendNotification('admin@dcaplatform.com', subject, text, html);
+    return sendNotification(process.env.NOTIFY_EMAIL || 'admin@dcaplatform.com', subject, text, html);
 };
