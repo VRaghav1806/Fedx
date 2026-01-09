@@ -47,6 +47,16 @@ const getTransporter = async () => {
     return transporterPromise;
 };
 
+export const testConnection = async () => {
+    console.log('--- 📧 SMTP STARTUP CHECK ---');
+    try {
+        await getTransporter();
+        console.log('✅ Email service initialized.');
+    } catch (error) {
+        console.error('❌ Email service failed to initialize:', error);
+    }
+};
+
 export const sendNotification = async (to: string, subject: string, text: string, html: string) => {
     try {
         const transporter = await getTransporter();

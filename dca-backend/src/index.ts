@@ -4,6 +4,8 @@ dotenv.config();
 import app from './app';
 import mongoose from 'mongoose';
 
+import { testConnection } from './services/emailService';
+
 const PORT = process.env.PORT || 5000;
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/dca_management';
 
@@ -18,6 +20,9 @@ const startServer = async () => {
 
         await mongoose.connect(MONGO_URL);
         console.log('✅ Connected to MongoDB');
+
+        // Run SMTP Check
+        await testConnection();
 
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
