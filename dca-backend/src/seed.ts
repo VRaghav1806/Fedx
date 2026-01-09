@@ -4,11 +4,11 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/dca_management';
+const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/dca_management';
 
 const seedData = async () => {
     try {
-        await mongoose.connect(MONGO_URI);
+        await mongoose.connect(MONGO_URL);
         console.log('Connected to MongoDB for seeding');
 
         await Case.deleteMany({});
